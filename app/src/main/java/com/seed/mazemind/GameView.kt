@@ -36,13 +36,11 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     private val wallPaint = Paint()
     private val pathPaint = Paint()
-    private val fogPaint = Paint().apply { color = 0xFF050B14.toInt() }
     private val playerPaint = Paint().apply { isAntiAlias = true }
     private val exitPaint = Paint().apply { isAntiAlias = true }
     private val coinPaint = Paint().apply { color = 0xFFFFD700.toInt(); isAntiAlias = true }
     private val hintPaint = Paint().apply { color = 0xFF00FFCC.toInt(); isAntiAlias = true }
 
-    // Передача состояния: уровень, счет, сложность, секунды, оставшиеся подсказки
     var onGameStateChanged: ((Int, Int, Int, Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
@@ -239,7 +237,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         exitY = rows - 2
         maze[exitY][exitX] = 0
 
-        // Спавн монеток
         for (r in 1 until rows - 1) {
             for (c in 1 until cols - 1) {
                 if (maze[r][c] == 0 && !(r == 1 && c == 1) && !(r == exitY && c == exitX)) {
@@ -260,7 +257,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             score += 5 * difficulty
             hintPath = emptyList()
 
-            // Подбор монеты
             if (coins[playerY][playerX]) {
                 coins[playerY][playerX] = false
                 score += 50 * difficulty
@@ -317,53 +313,41 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         val cellWidth = width.toFloat() / cols
         val cellHeight = height.toFloat() / rows
-        val visionRadius = 3 // Радиус открытого обзора (Туман войны)
 
+        // Полный отрисовщик лабиринта без тумана войны
         for (r in 0 until rows) {
             for (c in 0 until cols) {
-                val isVisible = abs(r - playerY) <= visionRadius && abs(c - playerX) <= visionRadius
+                val paint = if (maze[r][c] == 1) wallPaint else pathPaint
+                canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, paint)
 
-                if (isVisible) {
-                    val paint = if (maze[r][c] == 1) wallPaint else pathPaint
-                    canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, paint)
-
-                    // Отрисовка монет
-                    if (coins[r][c]) {
-                        canvas.drawCircle(
-                            (c + 0.5f) * cellWidth,
-                            (r + 0.5f) * cellHeight,
-                            cellWidth.coerceAtMost(cellHeight) * 0.2f,
-                            coinPaint
-                        )
-                    }
-                } else {
-                    // Рисуем туман войны
-                    canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, fogPaint)
+                if (coins[r][c]) {
+                    canvas.drawCircle(
+                        (c + 0.5f) * cellWidth,
+                        (r + 0.5f) * cellHeight,
+                        cellWidth.coerceAtMost(cellHeight) * 0.2f,
+                        coinPaint
+                    )
                 }
             }
         }
 
         // Подсказки
         for (p in hintPath) {
-            if (abs(p.second - playerY) <= visionRadius && abs(p.first - playerX) <= visionRadius) {
-                canvas.drawCircle(
-                    (p.first + 0.5f) * cellWidth,
-                    (p.second + 0.5f) * cellHeight,
-                    cellWidth.coerceAtMost(cellHeight) * 0.18f,
-                    hintPaint
-                )
-            }
+            canvas.drawCircle(
+                (p.first + 0.5f) * cellWidth,
+                (p.second + 0.5f) * cellHeight,
+                cellWidth.coerceAtMost(cellHeight) * 0.18f,
+                hintPaint
+            )
         }
 
         // Выход
-        if (abs(exitY - playerY) <= visionRadius && abs(exitX - playerX) <= visionRadius) {
-            canvas.drawCircle(
-                (exitX + 0.5f) * cellWidth,
-                (exitY + 0.5f) * cellHeight,
-                cellWidth.coerceAtMost(cellHeight) * 0.35f,
-                exitPaint
-            )
-        }
+        canvas.drawCircle(
+            (exitX + 0.5f) * cellWidth,
+            (exitY + 0.5f) * cellHeight,
+            cellWidth.coerceAtMost(cellHeight) * 0.35f,
+            exitPaint
+        )
 
         // Игрок
         canvas.drawCircle(
