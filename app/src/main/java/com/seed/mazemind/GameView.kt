@@ -10,6 +10,8 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import java.util.LinkedList
+import java.util.Queue
 import java.util.Stack
 import kotlin.math.abs
 import kotlin.math.max
@@ -34,8 +36,8 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val pathPaint = Paint().apply { color = 0xFF1C2541.toInt() }
     private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntiAlias = true }
     private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntiAlias = true }
+    private val hintPaint = Paint().apply { color = 0xFFFFD700.toInt(); isAntiAlias = true }
 
-    // Лямбда принимает: уровень, счет, сложность, секунды таймера
     var onGameStateChanged: ((Int, Int, Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
@@ -44,7 +46,9 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val minSwipeDistance = 50f
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 60)
 
+    private var hintPath: List<Pair<Int, Int>> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
+
     private val timerRunnable = object : Runnable {
         override fun run() {
             secondsElapsed++
@@ -71,6 +75,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         level = 1
         score = 0
         secondsElapsed = 0
+        hintPath = emptyList()
         generateLevel()
         invalidate()
         startTimer()
@@ -82,10 +87,65 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         level = savedLevel
         score = savedScore
         secondsElapsed = 0
+        hintPath = emptyList()
         generateLevel()
         invalidate()
         startTimer()
         onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
+    }
+
+    // Алгоритм BFS для поиска кратчайшего пути к выходу
+    fun showHint() {
+        if (!::maze.isInitialized) return
+
+        val visited = Array(rows) { BooleanArray(cols) }
+        val parent = HashMap<Pair<Int, Int>, Pair<Int, Int>>()
+        val queue: Queue<Pair<Int, Int>> = LinkedList()
+
+        val start = Pair(playerX, playerY)
+        val end = Pair(exitX, exitY)
+
+        queue.add(start)
+        visited[start.second][start.first] = true
+        var found = false
+
+        val directions = listOf(Pair(0, -1), Pair(0, 1), Pair(-1, 0), Pair(1, 0))
+
+        while (queue.isNotEmpty()) {
+            val current = queue.poll()!!
+            if (current == end) {
+                found = true
+                break
+            }
+
+            for (d in directions) {
+                val nx = current.first + d.first
+                val ny = current.second + d.second
+                if (nx in 0 until cols && ny in 0 until rows && maze[ny][nx] == 0 && !visited[ny][nx]) {
+                    visited[ny][nx] = true
+                    parent[Pair(nx, ny)] = current
+                    queue.add(Pair(nx, ny))
+                }
+            }
+        }
+
+        if (found) {
+            val path = mutableListOf<Pair<Int, Int>>()
+            var curr: Pair<Int, Int>? = end
+            while (curr != null && curr != start) {
+                path.add(curr)
+                curr = parent[curr]
+            }
+            hintPath = path.reversed()
+            invalidate()
+
+            // Автоматически скрываем подсказку через 3 секунды
+            handler.removeCallbacksAndMessages("HINT")
+            handler.postAtTime({
+                hintPath = emptyList()
+                invalidate()
+            }, "HINT", android.os.SystemClock.uptimeMillis() + 3000)
+        }
     }
 
     private fun generateLevel() {
@@ -151,6 +211,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             playerX = newX
             playerY = newY
             score += 10 * difficulty
+            hintPath = emptyList() // сбрасываем подсказку при движении
 
             if (soundEnabled) {
                 try {
@@ -159,7 +220,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             }
 
             if (playerX == exitX && playerY == exitY) {
-                // Бонус за скорость: чем меньше секунд потрачено, тем больше бонус
                 val speedBonus = max(10, (300 - secondsElapsed * 3)) * difficulty
                 score += (100 * level * difficulty) + speedBonus
 
@@ -169,7 +229,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                     } catch (e: Exception) {}
                 }
                 level++
-                secondsElapsed = 0 // сбрасываем таймер для нового уровня
+                secondsElapsed = 0
                 generateLevel()
             }
             onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
@@ -213,6 +273,16 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 val paint = if (maze[r][c] == 1) wallPaint else pathPaint
                 canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, paint)
             }
+        }
+
+        // Отрисовка подсказки (жёлтые точки пути)
+        for (p in hintPath) {
+            canvas.drawCircle(
+                (p.first + 0.5f) * cellWidth,
+                (p.second + 0.5f) * cellHeight,
+                cellWidth.coerceAtMost(cellHeight) * 0.2f,
+                hintPaint
+            )
         }
 
         canvas.drawCircle(
