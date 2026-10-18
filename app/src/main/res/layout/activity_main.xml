@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="16dp"
-            android:gravity="space_between">
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/tvLevel"
@@ -26,6 +26,12 @@
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold" />
+
+            <!-- Распорка, которая сдвигает счет вправо -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/tvScore"
