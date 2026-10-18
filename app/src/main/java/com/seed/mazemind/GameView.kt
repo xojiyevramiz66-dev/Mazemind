@@ -25,20 +25,25 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var difficulty = 2
     private var soundEnabled = true
     private var secondsElapsed = 0
+    private var hintsLeft = 3
 
     private lateinit var maze: Array<IntArray>
+    private lateinit var coins: Array<BooleanArray>
     private var playerX = 1
     private var playerY = 1
     private var exitX = 1
     private var exitY = 1
 
-    private val wallPaint = Paint().apply { color = 0xFF3A506B.toInt() }
-    private val pathPaint = Paint().apply { color = 0xFF1C2541.toInt() }
-    private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntiAlias = true }
-    private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntiAlias = true }
-    private val hintPaint = Paint().apply { color = 0xFFFFD700.toInt(); isAntiAlias = true }
+    private val wallPaint = Paint()
+    private val pathPaint = Paint()
+    private val fogPaint = Paint().apply { color = 0xFF050B14.toInt() }
+    private val playerPaint = Paint().apply { isAntiAlias = true }
+    private val exitPaint = Paint().apply { isAntiAlias = true }
+    private val coinPaint = Paint().apply { color = 0xFFFFD700.toInt(); isAntiAlias = true }
+    private val hintPaint = Paint().apply { color = 0xFF00FFCC.toInt(); isAntiAlias = true }
 
-    var onGameStateChanged: ((Int, Int, Int, Int) -> Unit)? = null
+    // Передача состояния: уровень, счет, сложность, секунды, оставшиеся подсказки
+    var onGameStateChanged: ((Int, Int, Int, Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
     private var lastTouchX = 0f
@@ -52,9 +57,37 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val timerRunnable = object : Runnable {
         override fun run() {
             secondsElapsed++
-            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
+            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
             handler.postDelayed(this, 1000)
         }
+    }
+
+    init {
+        setThemeIndex(0)
+    }
+
+    fun setThemeIndex(index: Int) {
+        when (index) {
+            1 -> { // Киберпанк
+                wallPaint.color = 0xFF2D006B.toInt()
+                pathPaint.color = 0xFF0D001A.toInt()
+                playerPaint.color = 0xFFFF007F.toInt()
+                exitPaint.color = 0xFF00F0FF.toInt()
+            }
+            2 -> { // Лес / Природа
+                wallPaint.color = 0xFF1E3A1E.toInt()
+                pathPaint.color = 0xFF0B1A0B.toInt()
+                playerPaint.color = 0xFF81C784.toInt()
+                exitPaint.color = 0xFFFFB74D.toInt()
+            }
+            else -> { // Неон (по умолчанию)
+                wallPaint.color = 0xFF3A506B.toInt()
+                pathPaint.color = 0xFF1C2541.toInt()
+                playerPaint.color = 0xFF4CC9F0.toInt()
+                exitPaint.color = 0xFF4BB543.toInt()
+            }
+        }
+        invalidate()
     }
 
     fun setSoundEnabled(enabled: Boolean) {
@@ -75,11 +108,12 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         level = 1
         score = 0
         secondsElapsed = 0
+        hintsLeft = 3
         hintPath = emptyList()
         generateLevel()
         invalidate()
         startTimer()
-        onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
+        onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
     }
 
     fun loadGame(savedLevel: Int, savedScore: Int, savedDiff: Int) {
@@ -87,16 +121,16 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         level = savedLevel
         score = savedScore
         secondsElapsed = 0
+        hintsLeft = 3
         hintPath = emptyList()
         generateLevel()
         invalidate()
         startTimer()
-        onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
+        onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
     }
 
-    // Алгоритм BFS для поиска кратчайшего пути к выходу
     fun showHint() {
-        if (!::maze.isInitialized) return
+        if (!::maze.isInitialized || hintsLeft <= 0) return
 
         val visited = Array(rows) { BooleanArray(cols) }
         val parent = HashMap<Pair<Int, Int>, Pair<Int, Int>>()
@@ -130,6 +164,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         }
 
         if (found) {
+            hintsLeft--
             val path = mutableListOf<Pair<Int, Int>>()
             var curr: Pair<Int, Int>? = end
             while (curr != null && curr != start) {
@@ -137,14 +172,14 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 curr = parent[curr]
             }
             hintPath = path.reversed()
+            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
             invalidate()
 
-            // Автоматически скрываем подсказку через 3 секунды
             handler.removeCallbacksAndMessages("HINT")
             handler.postAtTime({
                 hintPath = emptyList()
                 invalidate()
-            }, "HINT", android.os.SystemClock.uptimeMillis() + 3000)
+            }, "HINT", android.os.SystemClock.uptimeMillis() + 2500)
         }
     }
 
@@ -166,6 +201,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         if (rows % 2 == 0) rows++
 
         maze = Array(rows) { IntArray(cols) { 1 } }
+        coins = Array(rows) { BooleanArray(cols) }
 
         val stack = Stack<Pair<Int, Int>>()
         val startX = 1
@@ -202,6 +238,17 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         exitX = cols - 2
         exitY = rows - 2
         maze[exitY][exitX] = 0
+
+        // Спавн монеток
+        for (r in 1 until rows - 1) {
+            for (c in 1 until cols - 1) {
+                if (maze[r][c] == 0 && !(r == 1 && c == 1) && !(r == exitY && c == exitX)) {
+                    if ((1..100).random() < 12) {
+                        coins[r][c] = true
+                    }
+                }
+            }
+        }
     }
 
     fun movePlayer(dx: Int, dy: Int) {
@@ -210,13 +257,18 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         if (newY in 0 until rows && newX in 0 until cols && maze[newY][newX] == 0) {
             playerX = newX
             playerY = newY
-            score += 10 * difficulty
-            hintPath = emptyList() // сбрасываем подсказку при движении
+            score += 5 * difficulty
+            hintPath = emptyList()
 
-            if (soundEnabled) {
-                try {
-                    toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 40)
-                } catch (e: Exception) {}
+            // Подбор монеты
+            if (coins[playerY][playerX]) {
+                coins[playerY][playerX] = false
+                score += 50 * difficulty
+                if (soundEnabled) {
+                    try { toneGen.startTone(ToneGenerator.TONE_PROP_ACK, 60) } catch (e: Exception) {}
+                }
+            } else if (soundEnabled) {
+                try { toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 30) } catch (e: Exception) {}
             }
 
             if (playerX == exitX && playerY == exitY) {
@@ -224,15 +276,13 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 score += (100 * level * difficulty) + speedBonus
 
                 if (soundEnabled) {
-                    try {
-                        toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200)
-                    } catch (e: Exception) {}
+                    try { toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 180) } catch (e: Exception) {}
                 }
                 level++
                 secondsElapsed = 0
                 generateLevel()
             }
-            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
+            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
             invalidate()
         }
     }
@@ -267,31 +317,55 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         val cellWidth = width.toFloat() / cols
         val cellHeight = height.toFloat() / rows
+        val visionRadius = 3 // Радиус открытого обзора (Туман войны)
 
         for (r in 0 until rows) {
             for (c in 0 until cols) {
-                val paint = if (maze[r][c] == 1) wallPaint else pathPaint
-                canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, paint)
+                val isVisible = abs(r - playerY) <= visionRadius && abs(c - playerX) <= visionRadius
+
+                if (isVisible) {
+                    val paint = if (maze[r][c] == 1) wallPaint else pathPaint
+                    canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, paint)
+
+                    // Отрисовка монет
+                    if (coins[r][c]) {
+                        canvas.drawCircle(
+                            (c + 0.5f) * cellWidth,
+                            (r + 0.5f) * cellHeight,
+                            cellWidth.coerceAtMost(cellHeight) * 0.2f,
+                            coinPaint
+                        )
+                    }
+                } else {
+                    // Рисуем туман войны
+                    canvas.drawRect(c * cellWidth, r * cellHeight, (c + 1) * cellWidth, (r + 1) * cellHeight, fogPaint)
+                }
             }
         }
 
-        // Отрисовка подсказки (жёлтые точки пути)
+        // Подсказки
         for (p in hintPath) {
+            if (abs(p.second - playerY) <= visionRadius && abs(p.first - playerX) <= visionRadius) {
+                canvas.drawCircle(
+                    (p.first + 0.5f) * cellWidth,
+                    (p.second + 0.5f) * cellHeight,
+                    cellWidth.coerceAtMost(cellHeight) * 0.18f,
+                    hintPaint
+                )
+            }
+        }
+
+        // Выход
+        if (abs(exitY - playerY) <= visionRadius && abs(exitX - playerX) <= visionRadius) {
             canvas.drawCircle(
-                (p.first + 0.5f) * cellWidth,
-                (p.second + 0.5f) * cellHeight,
-                cellWidth.coerceAtMost(cellHeight) * 0.2f,
-                hintPaint
+                (exitX + 0.5f) * cellWidth,
+                (exitY + 0.5f) * cellHeight,
+                cellWidth.coerceAtMost(cellHeight) * 0.35f,
+                exitPaint
             )
         }
 
-        canvas.drawCircle(
-            (exitX + 0.5f) * cellWidth,
-            (exitY + 0.5f) * cellHeight,
-            cellWidth.coerceAtMost(cellHeight) * 0.35f,
-            exitPaint
-        )
-
+        // Игрок
         canvas.drawCircle(
             (playerX + 0.5f) * cellWidth,
             (playerY + 0.5f) * cellHeight,
