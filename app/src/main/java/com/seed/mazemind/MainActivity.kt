@@ -33,7 +33,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
             menuLayout.visibility = View.GONE
-            gameView.startNewGame()
+            // Восстанавливаем сохраненный уровень и счет при старте
+            val savedLevel = prefs.getInt("saved_level", 1)
+            val savedScore = prefs.getInt("saved_score", 0)
+            gameView.loadGame(savedLevel, savedScore)
         }
 
         findViewById<Button>(R.id.btnUp).setOnClickListener { gameView.movePlayer(0, -1) }
@@ -45,6 +48,11 @@ class MainActivity : AppCompatActivity() {
             tvLevel.text = "Уровень: $level"
             tvScore.text = "Счёт: $score"
             checkAndUpdateHighScore(score)
+            // Сохраняем текущий игровой прогресс в память устройства
+            prefs.edit()
+                .putInt("saved_level", level)
+                .putInt("saved_score", score)
+                .apply()
         }
 
         gameView.onGameOverToMenu = {
