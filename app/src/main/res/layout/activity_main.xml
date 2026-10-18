@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="#0F172A">
 
-    <!-- Игровое поле и верхняя панель -->
+    <!-- Игровой экран -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -52,14 +52,14 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Сам лабиринт -->
+        <!-- Поле лабиринта -->
         <com.seed.mazemind.GameView
             android:id="@+id/gameView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Панель управления и кнопка подсказки внизу -->
+        <!-- Панель управления и Подсказка -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,13 +67,12 @@
             android:gravity="center"
             android:padding="12dp">
 
-            <!-- Кнопка подсказки -->
             <Button
                 android:id="@+id/btnHint"
-                android:layout_width="140dp"
+                android:layout_width="180dp"
                 android:layout_height="40dp"
-                android:text="💡 Подсказка"
-                android:textSize="14sp"
+                android:text="💡 Подсказка (3/3)"
+                android:textSize="13sp"
                 android:layout_marginBottom="8dp" />
 
             <Button
@@ -126,7 +125,7 @@
             android:textColor="#38BDF8"
             android:textSize="36sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="4dp" />
 
         <TextView
             android:id="@+id/tvHighScoreMenu"
@@ -134,55 +133,92 @@
             android:layout_height="wrap_content"
             android:text="Рекорд: 0"
             android:textColor="#94A3B8"
-            android:textSize="18sp"
-            android:layout_marginBottom="20dp" />
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp" />
 
         <Button
             android:id="@+id/btnPlay"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="44dp"
             android:text="Продолжить игру"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp" />
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/btnSoundToggle"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Звук: Вкл"
-            android:textSize="15sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <Button
+                android:id="@+id/btnSoundToggle"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Звук: Вкл"
+                android:textSize="13sp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnThemeToggle"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Тема: Неон"
+                android:textSize="13sp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Выберите сложность:"
             android:textColor="#CBD5E1"
-            android:textSize="16sp"
-            android:layout_marginBottom="10dp" />
-
-        <Button
-            android:id="@+id/btnEasy"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Лёгкий"
             android:textSize="15sp"
             android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/btnMedium"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Средний"
-            android:textSize="15sp"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
 
-        <Button
-            android:id="@+id/btnHard"
+            <Button
+                android:id="@+id/btnEasy"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Лёгкий"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnMedium"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Средний"
+                android:textSize="13sp"
+                android:layout_marginHorizontal="4dp" />
+
+            <Button
+                android:id="@+id/btnHard"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Сложный"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvAchievements"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Сложный"
-            android:textSize="15sp" />
+            android:layout_height="wrap_content"
+            android:text="🏆 Достижения: Скоро..."
+            android:textColor="#F3F4F6"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="#0F172A"
+            android:padding="10dp" />
     </LinearLayout>
 
 </RelativeLayout>
