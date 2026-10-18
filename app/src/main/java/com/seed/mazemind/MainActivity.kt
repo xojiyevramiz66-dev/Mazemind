@@ -31,22 +31,28 @@ class MainActivity : AppCompatActivity() {
         prefs = getSharedPreferences("MazeMindPrefs", Context.MODE_PRIVATE)
         updateHighScoreDisplay()
 
-        // Кнопка "Продолжить" (загрузка сохраненного уровня)
+        // Продолжить сохраненную игру
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
             menuLayout.visibility = View.GONE
             val savedLevel = prefs.getInt("saved_level", 1)
             val savedScore = prefs.getInt("saved_score", 0)
-            gameView.loadGame(savedLevel, savedScore)
+            val savedDiff = prefs.getInt("saved_difficulty", 2)
+            gameView.loadGame(savedLevel, savedScore, savedDiff)
         }
 
-        // Кнопка "Новая игра" (сброс прогресса до 1 уровня)
-        findViewById<Button>(R.id.btnNewGame).setOnClickListener {
-            menuLayout.visibility = View.GONE
-            prefs.edit()
-                .putInt("saved_level", 1)
-                .putInt("saved_score", 0)
-                .apply()
-            gameView.startNewGame()
+        // Выбор сложности: Лёгкий (1)
+        findViewById<Button>(R.id.btnEasy).setOnClickListener {
+            startGameWithDifficulty(1)
+        }
+
+        // Выбор сложности: Средний (2)
+        findViewById<Button>(R.id.btnMedium).setOnClickListener {
+            startGameWithDifficulty(2)
+        }
+
+        // Выбор сложности: Сложный (3)
+        findViewById<Button>(R.id.btnHard).setOnClickListener {
+            startGameWithDifficulty(3)
         }
 
         findViewById<Button>(R.id.btnUp).setOnClickListener { gameView.movePlayer(0, -1) }
@@ -54,13 +60,14 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnLeft).setOnClickListener { gameView.movePlayer(-1, 0) }
         findViewById<Button>(R.id.btnRight).setOnClickListener { gameView.movePlayer(1, 0) }
 
-        gameView.onGameStateChanged = { level, score ->
+        gameView.onGameStateChanged = { level, score, diff ->
             tvLevel.text = "Уровень: $level"
             tvScore.text = "Счёт: $score"
             checkAndUpdateHighScore(score)
             prefs.edit()
                 .putInt("saved_level", level)
                 .putInt("saved_score", score)
+                .putInt("saved_difficulty", diff)
                 .apply()
         }
 
@@ -68,6 +75,16 @@ class MainActivity : AppCompatActivity() {
             menuLayout.visibility = View.VISIBLE
             updateHighScoreDisplay()
         }
+    }
+
+    private fun startGameWithDifficulty(difficulty: Int) {
+        menuLayout.visibility = View.GONE
+        prefs.edit()
+            .putInt("saved_level", 1)
+            .putInt("saved_score", 0)
+            .putInt("saved_difficulty", difficulty)
+            .apply()
+        gameView.startNewGame(difficulty)
     }
 
     private fun checkAndUpdateHighScore(score: Int) {
