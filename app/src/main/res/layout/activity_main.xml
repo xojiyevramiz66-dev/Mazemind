@@ -10,7 +10,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Верхняя панель: Уровень, Таймер и Счёт -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -52,14 +51,12 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Поле лабиринта -->
         <com.seed.mazemind.GameView
             android:id="@+id/gameView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Панель управления и Подсказка -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -108,6 +105,52 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Выбор языка при первом запуске (RU / EN) -->
+    <LinearLayout
+        android:id="@+id/languageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1E293B"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone"
+        android:elevation="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MazeMind"
+            android:textColor="#38BDF8"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/select_language"
+            android:textColor="#CBD5E1"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="20dp" />
+
+        <Button
+            android:id="@+id/btnLangRu"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/lang_ru"
+            android:textSize="16sp"
+            android:layout_marginBottom="14dp" />
+
+        <Button
+            android:id="@+id/btnLangEn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/lang_en"
+            android:textSize="16sp" />
+    </LinearLayout>
+
     <!-- Главное меню -->
     <LinearLayout
         android:id="@+id/menuLayout"
@@ -123,9 +166,9 @@
             android:layout_height="wrap_content"
             android:text="MazeMind"
             android:textColor="#38BDF8"
-            android:textSize="36sp"
+            android:textSize="32sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="2dp" />
 
         <TextView
             android:id="@+id/tvHighScoreMenu"
@@ -133,92 +176,102 @@
             android:layout_height="wrap_content"
             android:text="Рекорд: 0"
             android:textColor="#94A3B8"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp" />
 
         <Button
             android:id="@+id/btnPlay"
             android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:text="Продолжить игру"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="42dp"
+            android:text="@string/continue_game"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="8dp">
 
             <Button
                 android:id="@+id/btnSoundToggle"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:layout_weight="1"
-                android:text="Звук: Вкл"
-                android:textSize="13sp"
+                android:text="@string/sound_on"
+                android:textSize="12sp"
                 android:layout_marginEnd="4dp" />
 
             <Button
                 android:id="@+id/btnThemeToggle"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:layout_weight="1"
-                android:text="Тема: Неон"
-                android:textSize="13sp"
+                android:text="@string/theme_neon"
+                android:textSize="12sp"
                 android:layout_marginStart="4dp" />
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Выберите сложность:"
+            android:text="@string/select_difficulty"
             android:textColor="#CBD5E1"
-            android:textSize="15sp"
-            android:layout_marginBottom="8dp" />
+            android:textSize="14sp"
+            android:layout_marginBottom="6dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="10dp">
 
             <Button
                 android:id="@+id/btnEasy"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:layout_weight="1"
-                android:text="Лёгкий"
-                android:textSize="13sp" />
+                android:text="@string/diff_easy"
+                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/btnMedium"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:layout_weight="1"
-                android:text="Средний"
-                android:textSize="13sp"
+                android:text="@string/diff_medium"
+                android:textSize="12sp"
                 android:layout_marginHorizontal="4dp" />
 
             <Button
                 android:id="@+id/btnHard"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:layout_weight="1"
-                android:text="Сложный"
-                android:textSize="13sp" />
+                android:text="@string/diff_hard"
+                android:textSize="12sp" />
         </LinearLayout>
+
+        <!-- Кнопка выхода -->
+        <Button
+            android:id="@+id/btnExit"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:text="@string/exit_game"
+            android:textSize="13sp"
+            android:backgroundTint="#DC2626"
+            android:layout_marginBottom="10dp" />
 
         <TextView
             android:id="@+id/tvAchievements"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🏆 Достижения: Скоро..."
+            android:text="🏆 Достижения"
             android:textColor="#F3F4F6"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:gravity="center"
             android:background="#0F172A"
-            android:padding="10dp" />
+            android:padding="8dp" />
     </LinearLayout>
 
 </RelativeLayout>
