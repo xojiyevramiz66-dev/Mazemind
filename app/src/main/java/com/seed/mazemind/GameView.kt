@@ -24,8 +24,8 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     private val wallPaint = Paint().apply { color = 0xFF3A506B.toInt() }
     private val pathPaint = Paint().apply { color = 0xFF1C2541.toInt() }
-    private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntialias = true }
-    private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntialias = true }
+    private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntiAlias = true }
+    private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntiAlias = true }
 
     var onGameStateChanged: ((Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
