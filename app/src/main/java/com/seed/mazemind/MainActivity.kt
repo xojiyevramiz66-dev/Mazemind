@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
@@ -30,6 +31,20 @@ class MainActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences("MazeMindPrefs", Context.MODE_PRIVATE)
         updateHighScoreDisplay()
+
+        // Перехватываем системную кнопку "Назад"
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            handleOnBackPressed() {
+                if (menuLayout.visibility == View.GONE) {
+                    // Если мы в игре — возвращаем в главное меню
+                    menuLayout.visibility = View.VISIBLE
+                    updateHighScoreDisplay()
+                } else {
+                    // Если мы уже в меню — закрываем приложение
+                    finish()
+                }
+            }
+        })
 
         // Продолжить сохраненную игру
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
