@@ -3,6 +3,8 @@ package com.seed.mazemind
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -15,6 +17,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var rows = 15
     private var level = 1
     private var score = 0
+    private var difficulty = 2 // 1 - Лёгкий, 2 - Средний, 3 - Сложный
 
     private lateinit var maze: Array<IntArray>
     private var playerX = 1
@@ -27,32 +30,48 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntiAlias = true }
     private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntiAlias = true }
 
-    var onGameStateChanged: ((Int, Int) -> Unit)? = null
+    // Передаем в лямбду: уровень, счет, сложность
+    var onGameStateChanged: ((Int, Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
     private var lastTouchX = 0f
     private var lastTouchY = 0f
-    private val minSwipeDistance = 60f
+    private val minSwipeDistance = 50f
+    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 60)
 
-    fun startNewGame() {
+    fun startNewGame(diff: Int) {
+        difficulty = diff
         level = 1
         score = 0
         generateLevel()
         invalidate()
-        onGameStateChanged?.invoke(level, score)
+        onGameStateChanged?.invoke(level, score, difficulty)
     }
 
-    fun loadGame(savedLevel: Int, savedScore: Int) {
+    fun loadGame(savedLevel: Int, savedScore: Int, savedDiff: Int) {
+        difficulty = savedDiff
         level = savedLevel
         score = savedScore
         generateLevel()
         invalidate()
-        onGameStateChanged?.invoke(level, score)
+        onGameStateChanged?.invoke(level, score, difficulty)
     }
 
     private fun generateLevel() {
-        cols = 9 + (level * 2).coerceAtMost(25)
-        rows = 11 + (level * 2).coerceAtMost(35)
+        // Базовый размер зависит от выбранной сложности
+        val baseCols = when (difficulty) {
+            1 -> 7   // Лёгкий (меньше сетка)
+            3 -> 15  // Сложный (больше сетка)
+            else -> 11 // Средний
+        }
+        val baseRows = when (difficulty) {
+            1 -> 9
+            3 -> 21
+            else -> 15
+        }
+
+        cols = baseCols + ((level - 1) * 2).coerceAtMost(if (difficulty == 3) 20 else 10)
+        rows = baseRows + ((level - 1) * 2).coerceAtMost(if (difficulty == 3) 30 else 14)
         if (cols % 2 == 0) cols++
         if (rows % 2 == 0) rows++
 
@@ -101,14 +120,23 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         if (newY in 0 until rows && newX in 0 until cols && maze[newY][newX] == 0) {
             playerX = newX
             playerY = newY
-            score += 10
+            score += 10 * difficulty // Очки умножаются в зависимости от сложности
+
+            // Звук шага
+            try {
+                toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 40)
+            } catch (e: Exception) {}
 
             if (playerX == exitX && playerY == exitY) {
                 level++
-                score += 100 * level
+                score += 100 * level * difficulty
+                // Звук победы / перехода на новый уровень
+                try {
+                    toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200)
+                } catch (e: Exception) {}
                 generateLevel()
             }
-            onGameStateChanged?.invoke(level, score)
+            onGameStateChanged?.invoke(level, score, difficulty)
             invalidate()
         }
     }
