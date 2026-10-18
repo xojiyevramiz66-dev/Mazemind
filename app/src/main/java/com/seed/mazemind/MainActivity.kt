@@ -57,6 +57,11 @@ class MainActivity : AppCompatActivity() {
             gameView.setSoundEnabled(newSound)
         }
 
+        // Вызов подсказки
+        findViewById<Button>(R.id.btnHint).setOnClickListener {
+            gameView.showHint()
+        }
+
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
             menuLayout.visibility = View.GONE
             val savedLevel = prefs.getInt("saved_level", 1)
@@ -77,7 +82,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnLeft).setOnClickListener { gameView.movePlayer(-1, 0) }
         findViewById<Button>(R.id.btnRight).setOnClickListener { gameView.movePlayer(1, 0) }
 
-        // Обновляем уровень, счёт, сложность и таймер
         gameView.onGameStateChanged = { level, score, diff, seconds ->
             tvLevel.text = "Уровень: $level"
             tvTimer.text = "⏱ ${seconds}с"
