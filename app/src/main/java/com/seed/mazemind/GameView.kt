@@ -78,7 +78,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 playerPaint.color = 0xFF81C784.toInt()
                 exitPaint.color = 0xFFFFB74D.toInt()
             }
-            else -> { // Неон (по умолчанию)
+            else -> { // Неон
                 wallPaint.color = 0xFF3A506B.toInt()
                 pathPaint.color = 0xFF1C2541.toInt()
                 playerPaint.color = 0xFF4CC9F0.toInt()
@@ -114,12 +114,12 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
     }
 
-    fun loadGame(savedLevel: Int, savedScore: Int, savedDiff: Int) {
+    fun loadGame(savedLevel: Int, savedScore: Int, savedDiff: Int, savedHints: Int) {
         difficulty = savedDiff
         level = savedLevel
         score = savedScore
         secondsElapsed = 0
-        hintsLeft = 3
+        hintsLeft = savedHints // Применяем сохраненный остаток подсказок
         hintPath = emptyList()
         generateLevel()
         invalidate()
@@ -314,7 +314,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         val cellWidth = width.toFloat() / cols
         val cellHeight = height.toFloat() / rows
 
-        // Полный отрисовщик лабиринта без тумана войны
         for (r in 0 until rows) {
             for (c in 0 until cols) {
                 val paint = if (maze[r][c] == 1) wallPaint else pathPaint
@@ -331,7 +330,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             }
         }
 
-        // Подсказки
         for (p in hintPath) {
             canvas.drawCircle(
                 (p.first + 0.5f) * cellWidth,
@@ -341,7 +339,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             )
         }
 
-        // Выход
         canvas.drawCircle(
             (exitX + 0.5f) * cellWidth,
             (exitY + 0.5f) * cellHeight,
@@ -349,7 +346,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             exitPaint
         )
 
-        // Игрок
         canvas.drawCircle(
             (playerX + 0.5f) * cellWidth,
             (playerY + 0.5f) * cellHeight,
