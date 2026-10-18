@@ -1,11 +1,22 @@
 <resources>
     <string name="app_name">MazeMind</string>
-    <string name="play">Играть</string>
-    <string name="settings">Настройки</string>
-    <string name="score">Счёт: </string>
-    <string name="level">Уровень: </string>
-    <string name="pause">Пауза</string>
-    <string name="resume">Продолжить</string>
-    <string name="restart">Заново</string>
-    <string name="menu">В меню</string>
+    <string name="continue_game">Продолжить игру</string>
+    <string name="exit_game">Выйти из игры</string>
+    <string name="sound_on">Звук: Вкл</string>
+    <string name="sound_off">Звук: Выкл</string>
+    <string name="theme_neon">Тема: Неон</string>
+    <string name="theme_cyber">Тема: Киберпанк</string>
+    <string name="theme_forest">Тема: Лес</string>
+    <string name="select_difficulty">Выберите сложность:</string>
+    <string name="diff_easy">Лёгкий</string>
+    <string name="diff_medium">Средний</string>
+    <string name="diff_hard">Сложный</string>
+    <string name="select_language">Выберите язык / Choose language:</string>
+    <string name="lang_ru">🇷🇺 Русский</string>
+    <string name="lang_en">🇬🇧 English</string>
+    <string name="level_prefix">Уровень: </string>
+    <string name="score_prefix">Счёт: </string>
+    <string name="high_score">Рекорд: </string>
+    <string name="hint_btn">💡 Подсказка</string>
+    <string name="achievements">🏆 Достижения:</string>
 </resources>
