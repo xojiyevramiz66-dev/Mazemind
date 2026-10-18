@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_blue_bg">
+
+    <!-- Игровое поле лабиринта -->
+    <com.seed.mazemind.GameView
+        android:id="@+id/gameView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/controlLayout"
+        android:layout_below="@id/topHud" />
+
+    <!-- Верхняя панель управления (Инфо: Уровень и Счёт) -->
+    <LinearLayout
+        android:id="@+id/topHud"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="@color/panel_bg">
+
+        <TextView
+            android:id="@+id/tvLevel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Уровень: 1"
+            android:textColor="@color/text_color"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Счёт: 0"
+            android:textColor="@color/text_color"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Экранные кнопки движения -->
+    <GridLayout
+        android:id="@+id/controlLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:columnCount="3"
+        android:padding="16dp"
+        android:rowCount="2">
+
+        <Button
+            android:id="@+id/btnUp"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:layout_column="1"
+            android:layout_row="0"
+            android:text="▲" />
+
+        <Button
+            android:id="@+id/btnLeft"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:layout_column="0"
+            android:layout_row="1"
+            android:text="◀" />
+
+        <Button
+            android:id="@+id/btnDown"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:layout_column="1"
+            android:layout_row="1"
+            android:text="▼" />
+
+        <Button
+            android:id="@+id/btnRight"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:layout_column="2"
+            android:layout_row="1"
+            android:text="▶" />
+    </GridLayout>
+
+    <!-- Главное меню (Перекрывает экран при старте) -->
+    <LinearLayout
+        android:id="@+id/menuLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/dark_blue_bg"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MazeMind"
+            android:textColor="@color/player_color"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="48dp" />
+
+        <Button
+            android:id="@+id/btnPlay"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Играть"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvHighScoreMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Рекорд: 0"
+            android:textColor="@color/text_color"
+            android:textSize="16sp"
+            android:layout_marginTop="24dp" />
+    </LinearLayout>
+
+</RelativeLayout>
