@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvLevel: TextView
     private lateinit var tvScore: TextView
     private lateinit var tvHighScoreMenu: TextView
+    private lateinit var btnSoundToggle: Button
     private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,23 +29,32 @@ class MainActivity : AppCompatActivity() {
         tvLevel = findViewById(R.id.tvLevel)
         tvScore = findViewById(R.id.tvScore)
         tvHighScoreMenu = findViewById(R.id.tvHighScoreMenu)
+        btnSoundToggle = findViewById(R.id.btnSoundToggle)
 
         prefs = getSharedPreferences("MazeMindPrefs", Context.MODE_PRIVATE)
         updateHighScoreDisplay()
+        updateSoundButtonLabel()
 
-        // Перехватываем системную кнопку "Назад"
+        // Корректный перехват системной кнопки "Назад"
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            handleOnBackPressed() {
+            override fun handleOnBackPressed() {
                 if (menuLayout.visibility == View.GONE) {
-                    // Если мы в игре — возвращаем в главное меню
                     menuLayout.visibility = View.VISIBLE
                     updateHighScoreDisplay()
                 } else {
-                    // Если мы уже в меню — закрываем приложение
                     finish()
                 }
             }
         })
+
+        // Кнопка включения/выключения звука
+        btnSoundToggle.setOnClickListener {
+            val currentSound = prefs.getBoolean("sound_enabled", true)
+            val newSound = !currentSound
+            prefs.edit().putBoolean("sound_enabled", newSound).apply()
+            updateSoundButtonLabel()
+            gameView.setSoundEnabled(newSound)
+        }
 
         // Продолжить сохраненную игру
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
@@ -52,23 +62,15 @@ class MainActivity : AppCompatActivity() {
             val savedLevel = prefs.getInt("saved_level", 1)
             val savedScore = prefs.getInt("saved_score", 0)
             val savedDiff = prefs.getInt("saved_difficulty", 2)
+            val soundEnabled = prefs.getBoolean("sound_enabled", true)
+            
+            gameView.setSoundEnabled(soundEnabled)
             gameView.loadGame(savedLevel, savedScore, savedDiff)
         }
 
-        // Выбор сложности: Лёгкий (1)
-        findViewById<Button>(R.id.btnEasy).setOnClickListener {
-            startGameWithDifficulty(1)
-        }
-
-        // Выбор сложности: Средний (2)
-        findViewById<Button>(R.id.btnMedium).setOnClickListener {
-            startGameWithDifficulty(2)
-        }
-
-        // Выбор сложности: Сложный (3)
-        findViewById<Button>(R.id.btnHard).setOnClickListener {
-            startGameWithDifficulty(3)
-        }
+        findViewById<Button>(R.id.btnEasy).setOnClickListener { startGameWithDifficulty(1) }
+        findViewById<Button>(R.id.btnMedium).setOnClickListener { startGameWithDifficulty(2) }
+        findViewById<Button>(R.id.btnHard).setOnClickListener { startGameWithDifficulty(3) }
 
         findViewById<Button>(R.id.btnUp).setOnClickListener { gameView.movePlayer(0, -1) }
         findViewById<Button>(R.id.btnDown).setOnClickListener { gameView.movePlayer(0, 1) }
@@ -94,12 +96,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun startGameWithDifficulty(difficulty: Int) {
         menuLayout.visibility = View.GONE
+        val soundEnabled = prefs.getBoolean("sound_enabled", true)
         prefs.edit()
             .putInt("saved_level", 1)
             .putInt("saved_score", 0)
             .putInt("saved_difficulty", difficulty)
             .apply()
+        gameView.setSoundEnabled(soundEnabled)
         gameView.startNewGame(difficulty)
+    }
+
+    private fun updateSoundButtonLabel() {
+        val soundEnabled = prefs.getBoolean("sound_enabled", true)
+        btnSoundToggle.text = if (soundEnabled) "Звук: Вкл" else "Звук: Выкл"
     }
 
     private fun checkAndUpdateHighScore(score: Int) {
