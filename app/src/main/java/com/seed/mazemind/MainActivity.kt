@@ -18,8 +18,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvTimer: TextView
     private lateinit var tvScore: TextView
     private lateinit var tvHighScoreMenu: TextView
+    private lateinit var tvAchievements: TextView
     private lateinit var btnSoundToggle: Button
+    private lateinit var btnThemeToggle: Button
+    private lateinit var btnHint: Button
     private lateinit var prefs: SharedPreferences
+
+    private val themeNames = arrayOf("Неон", "Киберпанк", "Лес")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,11 +36,17 @@ class MainActivity : AppCompatActivity() {
         tvTimer = findViewById(R.id.tvTimer)
         tvScore = findViewById(R.id.tvScore)
         tvHighScoreMenu = findViewById(R.id.tvHighScoreMenu)
+        tvAchievements = findViewById(R.id.tvAchievements)
         btnSoundToggle = findViewById(R.id.btnSoundToggle)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
+        btnHint = findViewById(R.id.btnHint)
 
         prefs = getSharedPreferences("MazeMindPrefs", Context.MODE_PRIVATE)
+        
         updateHighScoreDisplay()
         updateSoundButtonLabel()
+        updateThemeButtonLabel()
+        updateAchievementsDisplay()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -43,6 +54,7 @@ class MainActivity : AppCompatActivity() {
                     gameView.stopTimer()
                     menuLayout.visibility = View.VISIBLE
                     updateHighScoreDisplay()
+                    updateAchievementsDisplay()
                 } else {
                     finish()
                 }
@@ -57,8 +69,15 @@ class MainActivity : AppCompatActivity() {
             gameView.setSoundEnabled(newSound)
         }
 
-        // Вызов подсказки
-        findViewById<Button>(R.id.btnHint).setOnClickListener {
+        btnThemeToggle.setOnClickListener {
+            var currentTheme = prefs.getInt("theme_index", 0)
+            currentTheme = (currentTheme + 1) % themeNames.size
+            prefs.edit().putInt("theme_index", currentTheme).apply()
+            updateThemeButtonLabel()
+            gameView.setThemeIndex(currentTheme)
+        }
+
+        btnHint.setOnClickListener {
             gameView.showHint()
         }
 
@@ -68,8 +87,10 @@ class MainActivity : AppCompatActivity() {
             val savedScore = prefs.getInt("saved_score", 0)
             val savedDiff = prefs.getInt("saved_difficulty", 2)
             val soundEnabled = prefs.getBoolean("sound_enabled", true)
+            val themeIndex = prefs.getInt("theme_index", 0)
             
             gameView.setSoundEnabled(soundEnabled)
+            gameView.setThemeIndex(themeIndex)
             gameView.loadGame(savedLevel, savedScore, savedDiff)
         }
 
@@ -82,11 +103,15 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnLeft).setOnClickListener { gameView.movePlayer(-1, 0) }
         findViewById<Button>(R.id.btnRight).setOnClickListener { gameView.movePlayer(1, 0) }
 
-        gameView.onGameStateChanged = { level, score, diff, seconds ->
+        gameView.onGameStateChanged = { level, score, diff, seconds, hintsLeft ->
             tvLevel.text = "Уровень: $level"
             tvTimer.text = "⏱ ${seconds}с"
             tvScore.text = "Счёт: $score"
+            btnHint.text = "💡 Подсказка ($hintsLeft/3)"
+            
             checkAndUpdateHighScore(score)
+            checkAchievements(level, score)
+
             prefs.edit()
                 .putInt("saved_level", level)
                 .putInt("saved_score", score)
@@ -97,24 +122,34 @@ class MainActivity : AppCompatActivity() {
         gameView.onGameOverToMenu = {
             menuLayout.visibility = View.VISIBLE
             updateHighScoreDisplay()
+            updateAchievementsDisplay()
         }
     }
 
     private fun startGameWithDifficulty(difficulty: Int) {
         menuLayout.visibility = View.GONE
         val soundEnabled = prefs.getBoolean("sound_enabled", true)
+        val themeIndex = prefs.getInt("theme_index", 0)
+        
         prefs.edit()
             .putInt("saved_level", 1)
             .putInt("saved_score", 0)
             .putInt("saved_difficulty", difficulty)
             .apply()
+            
         gameView.setSoundEnabled(soundEnabled)
+        gameView.setThemeIndex(themeIndex)
         gameView.startNewGame(difficulty)
     }
 
     private fun updateSoundButtonLabel() {
         val soundEnabled = prefs.getBoolean("sound_enabled", true)
         btnSoundToggle.text = if (soundEnabled) "Звук: Вкл" else "Звук: Выкл"
+    }
+
+    private fun updateThemeButtonLabel() {
+        val themeIndex = prefs.getInt("theme_index", 0)
+        btnThemeToggle.text = "Тема: ${themeNames[themeIndex]}"
     }
 
     private fun checkAndUpdateHighScore(score: Int) {
@@ -124,8 +159,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkAchievements(level: Int, score: Int) {
+        if (level >= 5) prefs.edit().putBoolean("ach_lvl5", true).apply()
+        if (score >= 1000) prefs.edit().putBoolean("ach_score1000", true).apply()
+    }
+
     private fun updateHighScoreDisplay() {
         val high = prefs.getInt("high_score", 0)
         tvHighScoreMenu.text = "Рекорд: $high"
+    }
+
+    private fun updateAchievementsDisplay() {
+        val achLvl5 = if (prefs.getBoolean("ach_lvl5", false)) "✅ Дойти до 5 уровня\n" else "🔒 Дойти до 5 уровня\n"
+        val achScore = if (prefs.getBoolean("ach_score1000", false)) "✅ Набрать 1000 очков" else "🔒 Набрать 1000 очков"
+        tvAchievements.text = "🏆 Достижения:\n$achLvl5$achScore"
     }
 }
