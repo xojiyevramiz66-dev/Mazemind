@@ -117,12 +117,13 @@ class MainActivity : AppCompatActivity() {
             val savedLevel = prefs.getInt("saved_level", 1)
             val savedScore = prefs.getInt("saved_score", 0)
             val savedDiff = prefs.getInt("saved_difficulty", 2)
+            val savedHints = prefs.getInt("saved_hints", 3) // Загрузка сохраненных подсказок
             val soundEnabled = prefs.getBoolean("sound_enabled", true)
             val themeIndex = prefs.getInt("theme_index", 0)
             
             gameView.setSoundEnabled(soundEnabled)
             gameView.setThemeIndex(themeIndex)
-            gameView.loadGame(savedLevel, savedScore, savedDiff)
+            gameView.loadGame(savedLevel, savedScore, savedDiff, savedHints)
         }
 
         findViewById<Button>(R.id.btnEasy).setOnClickListener { startGameWithDifficulty(1) }
@@ -143,10 +144,12 @@ class MainActivity : AppCompatActivity() {
             checkAndUpdateHighScore(score)
             checkAchievements(level, score)
 
+            // Сохраняем текущее количество оставшихся подсказок
             prefs.edit()
                 .putInt("saved_level", level)
                 .putInt("saved_score", score)
                 .putInt("saved_difficulty", diff)
+                .putInt("saved_hints", hintsLeft)
                 .apply()
         }
 
@@ -180,6 +183,7 @@ class MainActivity : AppCompatActivity() {
             .putInt("saved_level", 1)
             .putInt("saved_score", 0)
             .putInt("saved_difficulty", difficulty)
+            .putInt("saved_hints", 3) // Новая игра — сброс подсказок на 3
             .apply()
             
         gameView.setSoundEnabled(soundEnabled)
