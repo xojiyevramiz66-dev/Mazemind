@@ -5,11 +5,14 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import java.util.Stack
 import kotlin.math.abs
+import kotlin.math.max
 
 class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
@@ -19,6 +22,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var score = 0
     private var difficulty = 2
     private var soundEnabled = true
+    private var secondsElapsed = 0
 
     private lateinit var maze: Array<IntArray>
     private var playerX = 1
@@ -31,7 +35,8 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntiAlias = true }
     private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntiAlias = true }
 
-    var onGameStateChanged: ((Int, Int, Int) -> Unit)? = null
+    // Лямбда принимает: уровень, счет, сложность, секунды таймера
+    var onGameStateChanged: ((Int, Int, Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
     private var lastTouchX = 0f
@@ -39,26 +44,48 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val minSwipeDistance = 50f
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 60)
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val timerRunnable = object : Runnable {
+        override fun run() {
+            secondsElapsed++
+            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
+            handler.postDelayed(this, 1000)
+        }
+    }
+
     fun setSoundEnabled(enabled: Boolean) {
         soundEnabled = enabled
+    }
+
+    fun startTimer() {
+        handler.removeCallbacks(timerRunnable)
+        handler.postDelayed(timerRunnable, 1000)
+    }
+
+    fun stopTimer() {
+        handler.removeCallbacks(timerRunnable)
     }
 
     fun startNewGame(diff: Int) {
         difficulty = diff
         level = 1
         score = 0
+        secondsElapsed = 0
         generateLevel()
         invalidate()
-        onGameStateChanged?.invoke(level, score, difficulty)
+        startTimer()
+        onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
     }
 
     fun loadGame(savedLevel: Int, savedScore: Int, savedDiff: Int) {
         difficulty = savedDiff
         level = savedLevel
         score = savedScore
+        secondsElapsed = 0
         generateLevel()
         invalidate()
-        onGameStateChanged?.invoke(level, score, difficulty)
+        startTimer()
+        onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
     }
 
     private fun generateLevel() {
@@ -132,16 +159,20 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             }
 
             if (playerX == exitX && playerY == exitY) {
-                level++
-                score += 100 * level * difficulty
+                // Бонус за скорость: чем меньше секунд потрачено, тем больше бонус
+                val speedBonus = max(10, (300 - secondsElapsed * 3)) * difficulty
+                score += (100 * level * difficulty) + speedBonus
+
                 if (soundEnabled) {
                     try {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200)
                     } catch (e: Exception) {}
                 }
+                level++
+                secondsElapsed = 0 // сбрасываем таймер для нового уровня
                 generateLevel()
             }
-            onGameStateChanged?.invoke(level, score, difficulty)
+            onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed)
             invalidate()
         }
     }
