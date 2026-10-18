@@ -31,12 +31,22 @@ class MainActivity : AppCompatActivity() {
         prefs = getSharedPreferences("MazeMindPrefs", Context.MODE_PRIVATE)
         updateHighScoreDisplay()
 
+        // Кнопка "Продолжить" (загрузка сохраненного уровня)
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
             menuLayout.visibility = View.GONE
-            // Восстанавливаем сохраненный уровень и счет при старте
             val savedLevel = prefs.getInt("saved_level", 1)
             val savedScore = prefs.getInt("saved_score", 0)
             gameView.loadGame(savedLevel, savedScore)
+        }
+
+        // Кнопка "Новая игра" (сброс прогресса до 1 уровня)
+        findViewById<Button>(R.id.btnNewGame).setOnClickListener {
+            menuLayout.visibility = View.GONE
+            prefs.edit()
+                .putInt("saved_level", 1)
+                .putInt("saved_score", 0)
+                .apply()
+            gameView.startNewGame()
         }
 
         findViewById<Button>(R.id.btnUp).setOnClickListener { gameView.movePlayer(0, -1) }
@@ -48,7 +58,6 @@ class MainActivity : AppCompatActivity() {
             tvLevel.text = "Уровень: $level"
             tvScore.text = "Счёт: $score"
             checkAndUpdateHighScore(score)
-            // Сохраняем текущий игровой прогресс в память устройства
             prefs.edit()
                 .putInt("saved_level", level)
                 .putInt("saved_score", score)
