@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gameView: GameView
     private lateinit var menuLayout: LinearLayout
     private lateinit var tvLevel: TextView
+    private lateinit var tvTimer: TextView
     private lateinit var tvScore: TextView
     private lateinit var tvHighScoreMenu: TextView
     private lateinit var btnSoundToggle: Button
@@ -27,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         gameView = findViewById(R.id.gameView)
         menuLayout = findViewById(R.id.menuLayout)
         tvLevel = findViewById(R.id.tvLevel)
+        tvTimer = findViewById(R.id.tvTimer)
         tvScore = findViewById(R.id.tvScore)
         tvHighScoreMenu = findViewById(R.id.tvHighScoreMenu)
         btnSoundToggle = findViewById(R.id.btnSoundToggle)
@@ -35,10 +37,10 @@ class MainActivity : AppCompatActivity() {
         updateHighScoreDisplay()
         updateSoundButtonLabel()
 
-        // Корректный перехват системной кнопки "Назад"
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (menuLayout.visibility == View.GONE) {
+                    gameView.stopTimer()
                     menuLayout.visibility = View.VISIBLE
                     updateHighScoreDisplay()
                 } else {
@@ -47,7 +49,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Кнопка включения/выключения звука
         btnSoundToggle.setOnClickListener {
             val currentSound = prefs.getBoolean("sound_enabled", true)
             val newSound = !currentSound
@@ -56,7 +57,6 @@ class MainActivity : AppCompatActivity() {
             gameView.setSoundEnabled(newSound)
         }
 
-        // Продолжить сохраненную игру
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
             menuLayout.visibility = View.GONE
             val savedLevel = prefs.getInt("saved_level", 1)
@@ -77,8 +77,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnLeft).setOnClickListener { gameView.movePlayer(-1, 0) }
         findViewById<Button>(R.id.btnRight).setOnClickListener { gameView.movePlayer(1, 0) }
 
-        gameView.onGameStateChanged = { level, score, diff ->
+        // Обновляем уровень, счёт, сложность и таймер
+        gameView.onGameStateChanged = { level, score, diff, seconds ->
             tvLevel.text = "Уровень: $level"
+            tvTimer.text = "⏱ ${seconds}с"
             tvScore.text = "Счёт: $score"
             checkAndUpdateHighScore(score)
             prefs.edit()
