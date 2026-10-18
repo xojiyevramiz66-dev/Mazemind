@@ -16,7 +16,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var level = 1
     private var score = 0
 
-    private lateinit var maze: Array<IntArray> // 1 - стена, 0 - проход
+    private lateinit var maze: Array<IntArray>
     private var playerX = 1
     private var playerY = 1
     private var exitX = 1
@@ -30,8 +30,9 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     var onGameStateChanged: ((Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
-    private var touchX = 0f
-    private var touchY = 0f
+    private var lastTouchX = 0f
+    private var lastTouchY = 0f
+    private val minSwipeDistance = 60f
 
     fun startNewGame() {
         level = 1
@@ -57,7 +58,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         maze = Array(rows) { IntArray(cols) { 1 } }
 
-        // Построение лабиринта методом DFS с возвратом
         val stack = Stack<Pair<Int, Int>>()
         val startX = 1
         val startY = 1
@@ -116,18 +116,21 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                touchX = event.x
-                touchY = event.y
+                lastTouchX = event.x
+                lastTouchY = event.y
             }
-            MotionEvent.ACTION_UP -> {
-                val dx = event.x - touchX
-                val dy = event.y - touchY
-                if (abs(dx) > 50 || abs(dy) > 50) {
+            MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
+                val dx = event.x - lastTouchX
+                val dy = event.y - lastTouchY
+
+                if (abs(dx) > minSwipeDistance || abs(dy) > minSwipeDistance) {
                     if (abs(dx) > abs(dy)) {
                         if (dx > 0) movePlayer(1, 0) else movePlayer(-1, 0)
                     } else {
                         if (dy > 0) movePlayer(0, 1) else movePlayer(0, -1)
                     }
+                    lastTouchX = event.x
+                    lastTouchY = event.y
                 }
             }
         }
@@ -148,7 +151,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             }
         }
 
-        // Выход (Зелёный круг)
+        // Выход
         canvas.drawCircle(
             (exitX + 0.5f) * cellWidth,
             (exitY + 0.5f) * cellHeight,
@@ -156,7 +159,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             exitPaint
         )
 
-        // Игрок (Голубой круг)
+        // Игрок
         canvas.drawCircle(
             (playerX + 0.5f) * cellWidth,
             (playerY + 0.5f) * cellHeight,
