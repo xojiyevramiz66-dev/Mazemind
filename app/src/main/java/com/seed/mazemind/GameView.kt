@@ -17,7 +17,8 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var rows = 15
     private var level = 1
     private var score = 0
-    private var difficulty = 2 // 1 - Лёгкий, 2 - Средний, 3 - Сложный
+    private var difficulty = 2
+    private var soundEnabled = true
 
     private lateinit var maze: Array<IntArray>
     private var playerX = 1
@@ -30,7 +31,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val playerPaint = Paint().apply { color = 0xFF4CC9F0.toInt(); isAntiAlias = true }
     private val exitPaint = Paint().apply { color = 0xFF4BB543.toInt(); isAntiAlias = true }
 
-    // Передаем в лямбду: уровень, счет, сложность
     var onGameStateChanged: ((Int, Int, Int) -> Unit)? = null
     var onGameOverToMenu: (() -> Unit)? = null
 
@@ -38,6 +38,10 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var lastTouchY = 0f
     private val minSwipeDistance = 50f
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 60)
+
+    fun setSoundEnabled(enabled: Boolean) {
+        soundEnabled = enabled
+    }
 
     fun startNewGame(diff: Int) {
         difficulty = diff
@@ -58,11 +62,10 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     }
 
     private fun generateLevel() {
-        // Базовый размер зависит от выбранной сложности
         val baseCols = when (difficulty) {
-            1 -> 7   // Лёгкий (меньше сетка)
-            3 -> 15  // Сложный (больше сетка)
-            else -> 11 // Средний
+            1 -> 7
+            3 -> 15
+            else -> 11
         }
         val baseRows = when (difficulty) {
             1 -> 9
@@ -120,20 +123,22 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         if (newY in 0 until rows && newX in 0 until cols && maze[newY][newX] == 0) {
             playerX = newX
             playerY = newY
-            score += 10 * difficulty // Очки умножаются в зависимости от сложности
+            score += 10 * difficulty
 
-            // Звук шага
-            try {
-                toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 40)
-            } catch (e: Exception) {}
+            if (soundEnabled) {
+                try {
+                    toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 40)
+                } catch (e: Exception) {}
+            }
 
             if (playerX == exitX && playerY == exitY) {
                 level++
                 score += 100 * level * difficulty
-                // Звук победы / перехода на новый уровень
-                try {
-                    toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200)
-                } catch (e: Exception) {}
+                if (soundEnabled) {
+                    try {
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200)
+                    } catch (e: Exception) {}
+                }
                 generateLevel()
             }
             onGameStateChanged?.invoke(level, score, difficulty)
@@ -179,7 +184,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             }
         }
 
-        // Выход
         canvas.drawCircle(
             (exitX + 0.5f) * cellWidth,
             (exitY + 0.5f) * cellHeight,
@@ -187,7 +191,6 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             exitPaint
         )
 
-        // Игрок
         canvas.drawCircle(
             (playerX + 0.5f) * cellWidth,
             (playerY + 0.5f) * cellHeight,
