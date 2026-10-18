@@ -1,0 +1,9 @@
+<resources>
+    <color name="dark_blue_bg">#0B132B</color>
+    <color name="panel_bg">#1C2541</color>
+    <color name="wall_color">#3A506B</color>
+    <color name="path_color">#1C2541</color>
+    <color name="player_color">#4CC9F0</color>
+    <color name="exit_color">#4BB543</color>
+    <color name="text_color">#FFFFFF</color>
+</resources>
