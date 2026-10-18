@@ -119,7 +119,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         level = savedLevel
         score = savedScore
         secondsElapsed = 0
-        hintsLeft = savedHints // Применяем сохраненный остаток подсказок
+        hintsLeft = savedHints
         hintPath = emptyList()
         generateLevel()
         invalidate()
@@ -275,6 +275,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                     try { toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 180) } catch (e: Exception) {}
                 }
                 level++
+                hintsLeft = 3 // <--- Восстанавливаем 3 подсказки при переходе на новый уровень!
                 secondsElapsed = 0
                 generateLevel()
             }
