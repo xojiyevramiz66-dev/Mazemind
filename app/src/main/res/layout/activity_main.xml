@@ -59,18 +59,27 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Панель управления (стрелки) внизу -->
+        <!-- Панель управления и кнопка подсказки внизу -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="16dp">
+            android:padding="12dp">
+
+            <!-- Кнопка подсказки -->
+            <Button
+                android:id="@+id/btnHint"
+                android:layout_width="140dp"
+                android:layout_height="40dp"
+                android:text="💡 Подсказка"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
 
             <Button
                 android:id="@+id/btnUp"
                 android:layout_width="70dp"
-                android:layout_height="50dp"
+                android:layout_height="45dp"
                 android:text="▲" />
 
             <LinearLayout
@@ -81,20 +90,20 @@
                 <Button
                     android:id="@+id/btnLeft"
                     android:layout_width="70dp"
-                    android:layout_height="50dp"
+                    android:layout_height="45dp"
                     android:text="◀" />
 
                 <Button
                     android:id="@+id/btnDown"
                     android:layout_width="70dp"
-                    android:layout_height="50dp"
+                    android:layout_height="45dp"
                     android:text="▼"
                     android:layout_marginHorizontal="10dp" />
 
                 <Button
                     android:id="@+id/btnRight"
                     android:layout_width="70dp"
-                    android:layout_height="50dp"
+                    android:layout_height="45dp"
                     android:text="▶" />
             </LinearLayout>
         </LinearLayout>
