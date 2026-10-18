@@ -27,7 +27,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- Распорка, которая сдвигает счет вправо -->
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -91,7 +90,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Главное меню поверх игры -->
+    <!-- Главное меню выбора сложности -->
     <LinearLayout
         android:id="@+id/menuLayout"
         android:layout_width="match_parent"
@@ -117,22 +116,46 @@
             android:text="Рекорд: 0"
             android:textColor="#94A3B8"
             android:textSize="18sp"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="24dp" />
 
         <Button
             android:id="@+id/btnPlay"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Продолжить"
+            android:layout_height="50dp"
+            android:text="Продолжить игру"
+            android:textSize="15sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Выберите сложность:"
+            android:textColor="#CBD5E1"
             android:textSize="16sp"
             android:layout_marginBottom="12dp" />
 
         <Button
-            android:id="@+id/btnNewGame"
+            android:id="@+id/btnEasy"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Новая игра"
-            android:textSize="16sp" />
+            android:layout_height="50dp"
+            android:text="Лёгкий"
+            android:textSize="15sp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnMedium"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Средний"
+            android:textSize="15sp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnHard"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Сложный"
+            android:textSize="15sp" />
     </LinearLayout>
 
 </RelativeLayout>
