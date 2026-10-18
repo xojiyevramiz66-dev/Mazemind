@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">MazeMind</string>
+    <string name="continue_game">Continue Game</string>
+    <string name="exit_game">Exit Game</string>
+    <string name="sound_on">Sound: On</string>
+    <string name="sound_off">Sound: Off</string>
+    <string name="theme_neon">Theme: Neon</string>
+    <string name="theme_cyber">Theme: Cyberpunk</string>
+    <string name="theme_forest">Theme: Forest</string>
+    <string name="select_difficulty">Select Difficulty:</string>
+    <string name="diff_easy">Easy</string>
+    <string name="diff_medium">Medium</string>
+    <string name="diff_hard">Hard</string>
+    <string name="select_language">Choose language:</string>
+    <string name="lang_ru">🇷🇺 Русский</string>
+    <string name="lang_en">🇬🇧 English</string>
+    <string name="level_prefix">Level: </string>
+    <string name="score_prefix">Score: </string>
+    <string name="high_score">High Score: </string>
+    <string name="hint_btn">💡 Hint</string>
+    <string name="achievements">🏆 Achievements:</string>
+</resources>
