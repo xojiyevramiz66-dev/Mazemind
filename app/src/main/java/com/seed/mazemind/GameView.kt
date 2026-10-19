@@ -172,12 +172,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             hintPath = path.reversed()
             onGameStateChanged?.invoke(level, score, difficulty, secondsElapsed, hintsLeft)
             invalidate()
-
-            handler.removeCallbacksAndMessages("HINT")
-            handler.postAtTime({
-                hintPath = emptyList()
-                invalidate()
-            }, "HINT", android.os.SystemClock.uptimeMillis() + 2500)
+            // Таймер автоматического удаления подсказки убран, теперь она видна до следующего шага
         }
     }
 
@@ -255,7 +250,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             playerX = newX
             playerY = newY
             score += 5 * difficulty
-            hintPath = emptyList()
+            hintPath = emptyList() // Подсказка стирается при совершении хода
 
             if (coins[playerY][playerX]) {
                 coins[playerY][playerX] = false
@@ -275,7 +270,7 @@ class GameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                     try { toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 180) } catch (e: Exception) {}
                 }
                 level++
-                hintsLeft = 3 // <--- Восстанавливаем 3 подсказки при переходе на новый уровень!
+                hintsLeft = 3
                 secondsElapsed = 0
                 generateLevel()
             }
