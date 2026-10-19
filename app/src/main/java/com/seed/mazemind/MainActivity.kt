@@ -35,10 +35,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnHint: Button
     private lateinit var prefs: SharedPreferences
 
-    // Используем официальный тестовый ID от Google для отладки и проверки рекламы
+    // Официальный тестовый ID от Google для проверки рекламы с вознаграждением
     private val adUnitId = "ca-app-pub-3940256099942544/5224354917" 
     
-    // Когда игра будет полностью готова к публикации, замените строчку выше на вашу:
+    // Когда соберетесь выкладывать игру в Google Play, верните свой ID:
     // private val adUnitId = "ca-app-pub-6731716386800657/2339504187"
 
     private var rewardedAd: RewardedAd? = null
@@ -213,10 +213,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (rewardedAd != null) {
+            // Выдаем подсказку сразу после закрытия досмотренного рекламного ролика
             rewardedAd?.show(this) { _ ->
                 gameView.showHint()
                 rewardedAd = null
-                loadRewardedAd()
+                loadRewardedAd() // Заранее подгружаем следующий ролик
             }
         } else {
             loadRewardedAd()
