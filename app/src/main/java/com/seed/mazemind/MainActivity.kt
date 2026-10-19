@@ -35,10 +35,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnHint: Button
     private lateinit var prefs: SharedPreferences
 
-    // Рекламные переменные AdMob
+    // Используем официальный тестовый ID от Google для отладки и проверки рекламы
+    private val adUnitId = "ca-app-pub-3940256099942544/5224354917" 
+    
+    // Когда игра будет полностью готова к публикации, замените строчку выше на вашу:
+    // private val adUnitId = "ca-app-pub-6731716386800657/2339504187"
+
     private var rewardedAd: RewardedAd? = null
     private var isLoading = false
-    private val adUnitId = "ca-app-pub-6731716386800657/2339504187" // Ваш рекламный блок из AdMob
 
     private val themeNames = arrayOf("Неон", "Киберпанк", "Лес")
 
@@ -125,7 +129,6 @@ class MainActivity : AppCompatActivity() {
             gameView.setThemeIndex(currentTheme)
         }
 
-        // Логика кнопки подсказки с проверкой интернета и рекламой
         btnHint.setOnClickListener {
             showHintWithAdCheck()
         }
@@ -177,7 +180,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Проверка наличия интернета
     private fun isInternetAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork ?: return false
@@ -185,7 +187,6 @@ class MainActivity : AppCompatActivity() {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    // Исправленная загрузка рекламы: при ошибке или нехватке сети процесс не зависает навсегда
     private fun loadRewardedAd() {
         if (rewardedAd == null && !isLoading) {
             isLoading = true
@@ -205,7 +206,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Улучшенная логика: при клике принудительно запрашиваем загрузку, если ролик пуст
     private fun showHintWithAdCheck() {
         if (!isInternetAvailable(this)) {
             Toast.makeText(this, "Нет подключения к интернету! Включите сеть, чтобы получить подсказку.", Toast.LENGTH_LONG).show()
@@ -214,13 +214,11 @@ class MainActivity : AppCompatActivity() {
 
         if (rewardedAd != null) {
             rewardedAd?.show(this) { _ ->
-                // Пользователь досмотрел рекламу — даем подсказку в игре
                 gameView.showHint()
                 rewardedAd = null
-                loadRewardedAd() // Заранее подгружаем следующую
+                loadRewardedAd()
             }
         } else {
-            // Принудительно инициируем загрузку, если реклама еще не скачалась
             loadRewardedAd()
             Toast.makeText(this, "Загрузка рекламы... Нажмите на кнопку еще раз через пару секунд.", Toast.LENGTH_SHORT).show()
         }
