@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
             gameView.setThemeIndex(currentTheme)
         }
 
-        // Измененная логика кнопки подсказки с проверкой интернета и рекламой
+        // Логика кнопки подсказки с проверкой интернета и рекламой
         btnHint.setOnClickListener {
             showHintWithAdCheck()
         }
@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity() {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    // Загрузка рекламы за вознаграждение
+    // Исправленная загрузка рекламы: при ошибке или нехватке сети процесс не зависает навсегда
     private fun loadRewardedAd() {
         if (rewardedAd == null && !isLoading) {
             isLoading = true
@@ -205,25 +205,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Логика вызова подсказки с проверкой сети и показом рекламы
+    // Улучшенная логика: при клике принудительно запрашиваем загрузку, если ролик пуст
     private fun showHintWithAdCheck() {
-        // Проверяем, есть ли интернет
         if (!isInternetAvailable(this)) {
             Toast.makeText(this, "Нет подключения к интернету! Включите сеть, чтобы получить подсказку.", Toast.LENGTH_LONG).show()
             return
         }
 
-        // Если интернет есть, проверяем готовность рекламы
         if (rewardedAd != null) {
             rewardedAd?.show(this) { _ ->
                 // Пользователь досмотрел рекламу — даем подсказку в игре
                 gameView.showHint()
                 rewardedAd = null
-                loadRewardedAd()
+                loadRewardedAd() // Заранее подгружаем следующую
             }
         } else {
-            Toast.makeText(this, "Реклама еще загружается, попробуйте через секунду.", Toast.LENGTH_SHORT).show()
+            // Принудительно инициируем загрузку, если реклама еще не скачалась
             loadRewardedAd()
+            Toast.makeText(this, "Загрузка рекламы... Нажмите на кнопку еще раз через пару секунд.", Toast.LENGTH_SHORT).show()
         }
     }
 
