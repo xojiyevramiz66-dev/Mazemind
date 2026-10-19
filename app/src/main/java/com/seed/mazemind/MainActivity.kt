@@ -3,13 +3,21 @@ package com.seed.mazemind
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
@@ -26,6 +34,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnThemeToggle: Button
     private lateinit var btnHint: Button
     private lateinit var prefs: SharedPreferences
+
+    // Рекламные переменные AdMob
+    private var rewardedAd: RewardedAd? = null
+    private var isLoading = false
+    private val adUnitId = "ca-app-pub-6731716386800657/2339504187" // Ваш рекламный блок из AdMob
 
     private val themeNames = arrayOf("Неон", "Киберпанк", "Лес")
 
@@ -45,6 +58,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Инициализация Google Mobile Ads SDK
+        MobileAds.initialize(this) {}
+        loadRewardedAd() // Предзагружаем рекламу
 
         gameView = findViewById(R.id.gameView)
         menuLayout = findViewById(R.id.menuLayout)
@@ -108,8 +125,9 @@ class MainActivity : AppCompatActivity() {
             gameView.setThemeIndex(currentTheme)
         }
 
+        // Измененная логика кнопки подсказки с проверкой интернета и рекламой
         btnHint.setOnClickListener {
-            gameView.showHint()
+            showHintWithAdCheck()
         }
 
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
@@ -117,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             val savedLevel = prefs.getInt("saved_level", 1)
             val savedScore = prefs.getInt("saved_score", 0)
             val savedDiff = prefs.getInt("saved_difficulty", 2)
-            val savedHints = prefs.getInt("saved_hints", 3) // Загрузка сохраненных подсказок
+            val savedHints = prefs.getInt("saved_hints", 3)
             val soundEnabled = prefs.getBoolean("sound_enabled", true)
             val themeIndex = prefs.getInt("theme_index", 0)
             
@@ -144,7 +162,6 @@ class MainActivity : AppCompatActivity() {
             checkAndUpdateHighScore(score)
             checkAchievements(level, score)
 
-            // Сохраняем текущее количество оставшихся подсказок
             prefs.edit()
                 .putInt("saved_level", level)
                 .putInt("saved_score", score)
@@ -157,6 +174,56 @@ class MainActivity : AppCompatActivity() {
             menuLayout.visibility = View.VISIBLE
             updateHighScoreDisplay()
             updateAchievementsDisplay()
+        }
+    }
+
+    // Проверка наличия интернета
+    private fun isInternetAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    // Загрузка рекламы за вознаграждение
+    private fun loadRewardedAd() {
+        if (rewardedAd == null && !isLoading) {
+            isLoading = true
+            val adRequest = AdRequest.Builder().build()
+            
+            RewardedAd.load(this, adUnitId, adRequest, object : RewardedAdLoadCallback() {
+                override fun onAdLoaded(ad: RewardedAd) {
+                    rewardedAd = ad
+                    isLoading = false
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    rewardedAd = null
+                    isLoading = false
+                }
+            })
+        }
+    }
+
+    // Логика вызова подсказки с проверкой сети и показом рекламы
+    private fun showHintWithAdCheck() {
+        // Проверяем, есть ли интернет
+        if (!isInternetAvailable(this)) {
+            Toast.makeText(this, "Нет подключения к интернету! Включите сеть, чтобы получить подсказку.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // Если интернет есть, проверяем готовность рекламы
+        if (rewardedAd != null) {
+            rewardedAd?.show(this) { _ ->
+                // Пользователь досмотрел рекламу — даем подсказку в игре
+                gameView.showHint()
+                rewardedAd = null
+                loadRewardedAd()
+            }
+        } else {
+            Toast.makeText(this, "Реклама еще загружается, попробуйте через секунду.", Toast.LENGTH_SHORT).show()
+            loadRewardedAd()
         }
     }
 
@@ -183,7 +250,7 @@ class MainActivity : AppCompatActivity() {
             .putInt("saved_level", 1)
             .putInt("saved_score", 0)
             .putInt("saved_difficulty", difficulty)
-            .putInt("saved_hints", 3) // Новая игра — сброс подсказок на 3
+            .putInt("saved_hints", 3)
             .apply()
             
         gameView.setSoundEnabled(soundEnabled)
